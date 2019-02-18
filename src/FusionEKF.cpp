@@ -83,18 +83,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
             //         and initialize state.
             double rho = measurement_pack.raw_measurements_[0];
             double phi = measurement_pack.raw_measurements_[1];
-            double rho_dot = measurement_pack.raw_measurements_[2];
-            double x = rho * cos(phi);
-            if ( x < 0.0001 ) {
-                x = 0.0001;
-            }
-            double y = rho * sin(phi);
-            if ( y < 0.0001 ) {
-                y = 0.0001;
-            }
-            double vx = rho_dot * cos(phi);
-            double vy = rho_dot * sin(phi);
-            ekf_.x_ << x, y, vx , vy;
+            ekf_.x_ << rho * cos(phi), rho * sin(phi), 0 , 0;
         }
         else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
             // TODO: Initialize state.
@@ -133,9 +122,9 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     
     ekf_.F_ = MatrixXd(4, 4);
     ekf_.F_ << 1, 0, dt, 0,
-               0, 1, 0, dt,
-               0, 0, 1, 0,
-               0, 0, 0, 1;
+    0, 1, 0, dt,
+    0, 0, 1, 0,
+    0, 0, 0, 1;
     
     // acceleration noise
     float noise_ax = 9;
@@ -144,9 +133,9 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     // process covariance matrix
     ekf_.Q_ = MatrixXd(4, 4);
     ekf_.Q_ << dt_4 / 4 * noise_ax, 0, dt_3 / 2 * noise_ax, 0,
-               0, dt_4 / 4 * noise_ay, 0, dt_3 / 2 * noise_ay,
-               dt_3 / 2 * noise_ax, 0, dt_2 * noise_ax, 0,
-               0, dt_3 / 2 * noise_ay, 0, dt_2 * noise_ay;
+    0, dt_4 / 4 * noise_ay, 0, dt_3 / 2 * noise_ay,
+    dt_3 / 2 * noise_ax, 0, dt_2 * noise_ax, 0,
+    0, dt_3 / 2 * noise_ay, 0, dt_2 * noise_ay;
     
     ekf_.Predict();
     
